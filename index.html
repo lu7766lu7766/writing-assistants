@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#2F5D50" />
+  <meta name="description" content="學測國寫 AI 作文批改小助手：提供總分等第、四面向分析、逐句錯字批改、段落改寫示範與本機歷史紀錄。" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="作文助手" />
+  <title>作文小助手｜學測國寫 AI 批改與練習</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <!-- 離線狀態提示列 -->
+  <div id="offline-banner" class="offline-banner" role="status" hidden>
+    <span>⚡ 目前離線，仍可查看歷史紀錄；連線恢復後即可使用 AI 評分。</span>
+  </div>
+
+  <!-- 頂部導覽列 -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand" data-nav="input" role="button" tabindex="0" aria-label="回到作文輸入頁">
+        <span class="brand-seal" aria-hidden="true">文</span>
+        <div class="brand-text">
+          <h1 class="brand-title">作文小助手</h1>
+          <span class="brand-sub">學測國寫・四大面向批改</span>
+        </div>
+      </div>
+
+      <nav class="main-nav" aria-label="主要畫面切換">
+        <button type="button" class="nav-btn active" data-nav="input" aria-current="page">
+          <span>寫作評分</span>
+        </button>
+        <button type="button" class="nav-btn" data-nav="result">
+          <span>評閱結果</span>
+        </button>
+        <button type="button" class="nav-btn" data-nav="history">
+          <span>歷史紀錄</span>
+          <span id="history-count-badge" class="nav-badge" hidden>0</span>
+        </button>
+        <button type="button" class="nav-btn" data-nav="settings" aria-label="設定">
+          <span>⚙ 設定</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <!-- 首次使用隱私說明橫幅 -->
+    <div id="privacy-banner" class="privacy-banner">
+      <div class="privacy-banner-text">
+        <strong>🔒 本機隱私保障：</strong>Key 存在這台裝置的瀏覽器裡，不會上傳至任何第三方伺服器。共用電腦請用完按「清除資料」。
+      </div>
+      <button type="button" id="dismiss-privacy-btn" class="btn btn-sm btn-outline">我知道了</button>
+    </div>
+
+    <!-- ==================== 畫面 1：輸入頁 ==================== -->
+    <section id="view-input" class="view-section" aria-labelledby="heading-input">
+      <div id="input-form-card" class="card">
+        <div class="section-header-row">
+          <h2 id="heading-input" class="section-title">貼上作文・開始批改</h2>
+          <div class="sample-actions">
+            <span class="sample-label">範例試玩：</span>
+            <button type="button" class="btn btn-xs btn-outline" data-sample="intellectual">知性題範例</button>
+            <button type="button" class="btn btn-xs btn-outline" data-sample="expressive">情意題範例</button>
+          </div>
+        </div>
+
+        <!-- 題型選擇 -->
+        <div class="form-group">
+          <label class="form-label">1. 選擇國寫題型</label>
+          <div class="type-selector" role="radiogroup" aria-label="題型選擇">
+            <label class="type-option">
+              <input type="radio" name="essay-type" value="intellectual" checked />
+              <span class="type-box">
+                <strong class="type-name">知性題</strong>
+                <small class="type-desc">統整判斷・正反論證・邏輯分析</small>
+              </span>
+            </label>
+            <label class="type-option">
+              <input type="radio" name="essay-type" value="expressive" />
+              <span class="type-box">
+                <strong class="type-name">情意題</strong>
+                <small class="type-desc">體物感懷・經驗描摹・真摯體悟</small>
+              </span>
+            </label>
+            <label class="type-option">
+              <input type="radio" name="essay-type" value="free" />
+              <span class="type-box">
+                <strong class="type-name">自由練習</strong>
+                <small class="type-desc">不限文體・綜合評估立意與文辭</small>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 選填題目與引文 + 可折疊計時器 -->
+        <div class="collapsible-row">
+          <details id="prompt-details" class="sub-details">
+            <summary class="sub-summary">＋ 選填「題目」與「寫作說明／引文」（讓 AI 審題更精準）</summary>
+            <div class="sub-details-body">
+              <div class="form-group">
+                <label for="essay-title" class="form-label">作文題目（選填）</label>
+                <input
+                  type="text"
+                  id="essay-title"
+                  class="form-input"
+                  placeholder="例如：數位時代的資訊素養、季節的氣味…"
+                  maxlength="100"
+                />
+              </div>
+              <div class="form-group">
+                <label for="essay-prompt" class="form-label">寫作說明／題幹引文（選填）</label>
+                <textarea
+                  id="essay-prompt"
+                  class="form-textarea prompt-textarea"
+                  rows="3"
+                  placeholder="貼上考題引文或寫作要求，協助 AI 判斷是否扣題…"
+                ></textarea>
+              </div>
+            </div>
+          </details>
+
+          <details id="timer-details" class="sub-details">
+            <summary class="sub-summary">⏱ 寫作倒數計時器（學測國寫 90 分鐘）</summary>
+            <div class="sub-details-body timer-panel">
+              <div class="timer-display" id="timer-display" aria-live="off">90:00</div>
+              <div class="timer-controls">
+                <select id="timer-preset" class="form-select timer-select" aria-label="計時長度">
+                  <option value="90" selected>全卷 90 分鐘</option>
+                  <option value="45">單題 45 分鐘</option>
+                  <option value="30">速寫 30 分鐘</option>
+                </select>
+                <button type="button" id="timer-toggle-btn" class="btn btn-sm btn-primary">開始計時</button>
+                <button type="button" id="timer-reset-btn" class="btn btn-sm btn-outline">重設</button>
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <!-- 作文本文輸入 -->
+        <div class="form-group">
+          <div class="label-with-stats">
+            <label for="essay-content" class="form-label">2. 作文內容（純文字，50–3000 字）</label>
+            <div class="live-stats" aria-live="polite">
+              <span>字數：<strong id="char-count">0</strong> 字</span>
+              <span class="meta-dot">·</span>
+              <span>段落：<strong id="para-count">0</strong> 段</span>
+            </div>
+          </div>
+          <textarea
+            id="essay-content"
+            class="form-textarea essay-textarea serif-text"
+            rows="13"
+            placeholder="請在此貼上或輸入您的作文（每段之間請換行）…"
+          ></textarea>
+          <div class="textarea-footer">
+            <span id="length-hint" class="length-hint">建議字數 50–3000 字（不含標點與空白）</span>
+            <button type="button" id="clear-input-btn" class="btn btn-xs btn-ghost-danger">清空內容</button>
+          </div>
+        </div>
+
+        <!-- 送出評分按鈕 -->
+        <div class="submit-row">
+          <button type="button" id="grade-submit-btn" class="btn btn-lg btn-primary btn-block" disabled>
+            開始評分
+          </button>
+        </div>
+      </div>
+
+      <!-- 評分中骨架動畫面板 -->
+      <div id="loading-panel" class="card loading-card" hidden aria-live="polite">
+        <div class="spinner-seal" aria-hidden="true">評</div>
+        <h3 class="loading-title">國文老師正在細讀批改中…</h3>
+        <p class="loading-sub">正在分析立意取材、結構組織、遣詞造句與錯別字，約需 5–15 秒</p>
+        <div class="skeleton-wrap" aria-hidden="true">
+          <div class="skeleton-line sk-w60"></div>
+          <div class="skeleton-line sk-w90"></div>
+          <div class="skeleton-line sk-w80"></div>
+          <div class="skeleton-line sk-w70"></div>
+        </div>
+        <button type="button" id="cancel-grade-btn" class="btn btn-outline">取消評分</button>
+      </div>
+    </section>
+
+    <!-- ==================== 畫面 2：結果頁 ==================== -->
+    <section id="view-result" class="view-section" aria-labelledby="heading-result" hidden>
+      <div class="result-toolbar">
+        <button type="button" id="back-to-input-btn" class="btn btn-outline">← 回輸入頁</button>
+        <div class="result-toolbar-right">
+          <button type="button" id="copy-report-btn" class="btn btn-outline">複製全部評語</button>
+          <button type="button" id="download-txt-btn" class="btn btn-outline">下載 .txt</button>
+          <button type="button" id="regrade-current-btn" class="btn btn-primary">重新評分</button>
+        </div>
+      </div>
+
+      <h2 id="heading-result" class="sr-only">作文評閱結果</h2>
+      <div id="result-content" class="result-container"></div>
+    </section>
+
+    <!-- ==================== 畫面 3：歷史頁 ==================== -->
+    <section id="view-history" class="view-section" aria-labelledby="heading-history" hidden>
+      <div class="section-header-row">
+        <h2 id="heading-history" class="section-title">本機批改歷史紀錄</h2>
+        <button type="button" id="clear-history-btn" class="btn btn-sm btn-ghost-danger">清空全部紀錄</button>
+      </div>
+
+      <!-- 最近 10 次總分趨勢圖 -->
+      <div id="history-trend-card" class="card trend-card" hidden>
+        <h3 class="card-title">最近 10 次總分趨勢</h3>
+        <div id="history-trend-chart" class="trend-chart" aria-label="最近 10 次總分長條圖"></div>
+      </div>
+
+      <div id="history-list" class="history-list"></div>
+    </section>
+
+    <!-- ==================== 畫面 4：設定頁 ==================== -->
+    <section id="view-settings" class="view-section" aria-labelledby="heading-settings" hidden>
+      <div class="card">
+        <h2 id="heading-settings" class="section-title">設定與本機資料管理</h2>
+
+        <!-- API Key -->
+        <div class="form-group">
+          <label for="settings-api-key" class="form-label">Gemini API Key</label>
+          <div class="input-with-btn">
+            <input
+              type="password"
+              id="settings-api-key"
+              class="form-input"
+              placeholder="貼上 AIza 開頭的 Google Gemini API Key"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button type="button" id="toggle-key-visibility" class="btn btn-outline">顯示</button>
+          </div>
+          <p class="field-hint">
+            Key 只儲存在您瀏覽器的 <code>localStorage</code>，只會直接傳送給 <code>generativelanguage.googleapis.com</code>。可前往
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a> 免費申請。
+          </p>
+        </div>
+
+        <!-- 模型選擇與探測 -->
+        <div class="form-group">
+          <label for="settings-model" class="form-label">評分模型（預設 gemini-3.5-flash-lite）</label>
+          <div class="input-with-btn">
+            <select id="settings-model" class="form-select"></select>
+            <button type="button" id="detect-models-btn" class="btn btn-outline">重新偵測可用模型</button>
+          </div>
+          <p id="model-detect-status" class="field-hint">
+            若預設模型回傳 404，可點「重新偵測可用模型」取得您的 Key 支援的模型清單（推薦優先選 Lite 系列）。
+          </p>
+        </div>
+
+        <!-- 溫度滑桿 -->
+        <div class="form-group">
+          <div class="label-with-stats">
+            <label for="settings-temperature" class="form-label">評語創造性（Temperature）</label>
+            <strong id="settings-temp-value" class="temp-badge">0.4</strong>
+          </div>
+          <input
+            type="range"
+            id="settings-temperature"
+            class="form-range"
+            min="0"
+            max="1"
+            step="0.1"
+            value="0.4"
+          />
+          <div class="range-labels">
+            <span>0.0（最穩定一致）</span>
+            <span>0.4（預設建議）</span>
+            <span>1.0（改寫更多元）</span>
+          </div>
+        </div>
+
+        <!-- 儲存歷史紀錄開關 -->
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="settings-save-history" checked />
+            <span>自動將每次批改結果存入本機歷史紀錄（IndexedDB）</span>
+          </label>
+        </div>
+
+        <div class="settings-actions">
+          <button type="button" id="save-settings-btn" class="btn btn-primary">儲存設定</button>
+        </div>
+      </div>
+
+      <!-- 危險區域：清除本機資料 -->
+      <div class="card danger-zone-card">
+        <h3 class="card-title">共用電腦安全・清除本機資料</h3>
+        <p class="muted-text">
+          一鍵清除儲存在這台裝置上的 API Key、模型設定、草稿與所有歷史批改紀錄。在學校電腦或圖書館使用完畢後請務必點擊。
+        </p>
+        <button type="button" id="clear-all-data-btn" class="btn btn-danger">清除所有本機資料</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>作文小助手（學測國寫練習 PWA）・純前端本機儲存・AI 評分僅供自主練習參考</p>
+  </footer>
+
+  <!-- Toast 通知容器 -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- 自訂確認對話框（不使用原生 alert/confirm） -->
+  <div id="confirm-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+    <div class="modal-dialog card">
+      <h3 id="modal-title" class="modal-title">請確認</h3>
+      <p id="modal-message" class="modal-message"></p>
+      <div class="modal-actions">
+        <button type="button" id="modal-cancel-btn" class="btn btn-outline">取消</button>
+        <button type="button" id="modal-confirm-btn" class="btn btn-primary">確定</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
