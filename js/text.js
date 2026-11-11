@@ -128,3 +128,4 @@ export class ExamTimer {
     this.onTick(this.remaining, this.running);
   }
 }
+

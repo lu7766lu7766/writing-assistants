@@ -120,3 +120,4 @@ fs.writeFileSync(path.join(outDir, 'icon-192.png'), createIconPng(192, false));
 fs.writeFileSync(path.join(outDir, 'icon-512.png'), createIconPng(512, false));
 fs.writeFileSync(path.join(outDir, 'maskable-512.png'), createIconPng(512, true));
 console.log('Generated icons in icons/');
+

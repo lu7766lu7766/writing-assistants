@@ -58,3 +58,4 @@ npx serve .
 ```bash
 node tools/generate-icons.mjs
 ```
+

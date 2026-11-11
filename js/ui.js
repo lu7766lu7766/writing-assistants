@@ -443,3 +443,4 @@ export function populateModelSelect(selectEl, currentModel, detectedModels = [])
     )
     .join('');
 }
+

@@ -434,13 +434,13 @@ body {
   line-height: 1.35;
 }
 
-.type-option input:checked + .type-box {
+.type-option input:checked+.type-box {
   border-color: var(--primary);
   background: var(--primary-light);
   box-shadow: 0 0 0 1px var(--primary);
 }
 
-.type-option input:focus-visible + .type-box {
+.type-option input:focus-visible+.type-box {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
@@ -607,8 +607,17 @@ body {
 }
 
 @keyframes pulseSeal {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(47, 93, 80, 0.35); }
-  50% { transform: scale(1.06); box-shadow: 0 0 0 12px rgba(47, 93, 80, 0); }
+
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(47, 93, 80, 0.35);
+  }
+
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 0 12px rgba(47, 93, 80, 0);
+  }
 }
 
 .loading-title {
@@ -638,14 +647,34 @@ body {
   animation: shimmer 1.4s infinite;
 }
 
-.sk-w60 { width: 60%; margin: 0 auto; }
-.sk-w90 { width: 90%; margin: 0 auto; }
-.sk-w80 { width: 80%; margin: 0 auto; }
-.sk-w70 { width: 70%; margin: 0 auto; }
+.sk-w60 {
+  width: 60%;
+  margin: 0 auto;
+}
+
+.sk-w90 {
+  width: 90%;
+  margin: 0 auto;
+}
+
+.sk-w80 {
+  width: 80%;
+  margin: 0 auto;
+}
+
+.sk-w70 {
+  width: 70%;
+  margin: 0 auto;
+}
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* Result View */
@@ -1275,6 +1304,7 @@ body {
 
 /* Responsive */
 @media (max-width: 640px) {
+
   .type-selector,
   .dimensions-grid,
   .rewrite-grid {

@@ -164,3 +164,4 @@ export function buildUserPrompt({ type, title, promptText, content }) {
     `【學生作文原文】（請嚴格針對以下原文批改，引用處必須逐字存在於原文中）\n${content.trim()}`
   ].join('\n\n');
 }
+

@@ -130,3 +130,4 @@ export function downloadReportAsTxt(record) {
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
